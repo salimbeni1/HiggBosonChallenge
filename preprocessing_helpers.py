@@ -1,4 +1,7 @@
 import numpy as np
+from tqdm import tqdm
+import time
+import sys
 
 
 def standardize(x):
@@ -157,4 +160,75 @@ def find_and_replace(x, y, cols, bool=True, value=False):
     x = np.column_stack((red_x, miss_x))    # combine the 2 back together
 
     return x
+
+
+def sigma(x, w):
+    '''Define logistic function'''
+    sigma = 1/(1+np.exp(np.dot(x, w)))
+    return sigma
+
+
+def predict_logistic_labels(xtest, w):
+    '''Changed version of predict labels function to account for the fact
+    that logistic regression outputs answers between 0 and 1 and not -1 and 1'''
+    y_pred = 1 / (1 + np.exp(np.dot(xtest, w.T)))  # prediction of the logistic function
+    y_pred[np.where(y_pred <= 1 / 2)] = -1
+    y_pred[np.where(y_pred > 1 / 2)] = 1
+    return y_pred
+
+
+
+def logistic_accuracy(ytest, xtest, w):
+    y_pred = predict_logistic_labels(xtest, w)
+    #positive == 1
+    #negative == -1
+    ytest = (ytest + 1)/2
+    y_sum = y_pred + ytest  # adds true and predicted values
+    tp = list(y_sum).count(2)   # true positives
+    fp = list(y_sum).count(0)   # false positives
+    tn = list(y_sum).count(-1)  # true negatives
+    fn = list(y_sum).count(1)   # false negatives
+
+    return tp, fp, tn, fn
+
+
+def reg_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
+    '''Implement regularized logistic regression with GD method'''
+    P = list(ytest).count(1)   # number of 1s in test set
+    N = list(ytest).count(-1)  # number of -1s in test set
+    k = 200     # number of steps over which we observe loss to make sure it becomes smaller
+    losses = np.zeros(max_iters)    # initialize matrix to record losses
+    y = (y + 1)/2   # our labels are -1, 1 need to convert them to 0 and 1 for logistic regression
+    i = 0
+    for n in tqdm(range(max_iters)):
+        if i <= k:
+            grad = np.dot(x.T, (y - sigma(x, w)))/y.shape[0] + lmbd*np.linalg.norm(w)*w #grad of loss of logistic function
+            w += -gamma*grad    # take a step
+            loss = -(np.dot(y, np.log(sigma(x, w))) - np.dot((1 - y), np.log(1 - sigma(x, w)))) / y.shape[0] + \
+                   lmbd * np.sum(w ** 2) / 2
+            losses[n] = loss  # stores losses
+            tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w) # outputs confusion matrix
+            sys.stdout.write('TN={0} TP={1} Accuracy={2}\r'.format("{:.2f}%".format(100*tn/N), '{: .2f}%'.format(100*tp/P), '{: .2f}%'.format(100*(tp+tn)/(N+P))))
+            sys.stdout.flush()
+            time.sleep(0.001)
+        else:
+            if losses[n-1] <= 0.9*losses[n-k]:  # if loss improves keep looping with the same gamma
+                pass
+            else:
+                gamma = 0.9*gamma # if not make the step smaller
+                print('\ngamma={0}'.format(gamma))
+                i = 0
+
+            grad = np.dot(x.T, (y - sigma(x, w)))/y.shape[0] + lmbd*np.linalg.norm(w)*w #grad of loss of logistic function
+            w += -gamma*grad    # take a step
+            loss = -(np.dot(y, np.log(sigma(x, w))) - np.dot((1 - y), np.log(1 - sigma(x, w))))/y.shape[0] + \
+                   lmbd*np.sum(w**2)/2
+            losses[n] = loss
+            tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w)
+            sys.stdout.write('TN={0} TP={1} Accuracy={2}\r'.format("{:.2f}%".format(100*tn/N), '{: .2f}%'.format(100*tp/P), '{: .2f}%'.format(100*(tp+tn)/(N+P))))
+            sys.stdout.flush()
+            time.sleep(0.001)
+
+      i += 1
+    return w, losses, tp, fp, tn, fn  # return the weight matrix and loss
 
