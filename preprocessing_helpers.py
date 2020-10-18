@@ -67,3 +67,54 @@ def select_and_expand_f( arrF):
     temp += len(logInd)
       
     return new_arr
+
+
+def find_modes(x, y):
+
+    x_1 = []    # separate labels
+    x_2 = []
+
+    for y, x0 in zip(y, x):
+        if y == 1:
+            x_1.append(x0)
+        else:
+            x_2.append(x0)
+
+    x_1 = np.array(x_1)
+    x_2 = np.array(x_2)
+
+    cols = []
+    for col in range(x_2.shape[1]):
+        if np.any(x_2[:, col] == -999):
+            cols.append(col)
+
+    x_1 = x_1[:, cols]  # only columns with missing values
+    x_2 = x_2[:, cols]
+
+    modes1 = []
+    modes2 = []
+
+    for i in range(len(cols)):  # go through the columns of x_1 and x_2
+        # delete the missing values from the array
+        del_miss_1 = np.delete(x_1[:, i], np.where(x_1[:, i] == -999)[0])
+        del_miss_2 = np.delete(x_2[:, i], np.where(x_2[:, i] == -999)[0])
+
+        # mean1 = np.mean(del_miss_1)   #optionally you can find means
+        # mean2 = np.mean(del_miss_2)
+
+        # select bin index with maximum count
+        count1 = np.argmax(np.histogram(del_miss_1, bins=int(np.sqrt(del_miss_1.shape[0])))[0])
+        count2 = np.argmax(np.histogram(del_miss_2, bins=int(np.sqrt(del_miss_2.shape[0])))[0])
+
+        bins1 = np.histogram(del_miss_1, bins=int(np.sqrt(del_miss_1.shape[0])))[1]  # bin edges
+        bins2 = np.histogram(del_miss_2, bins=int(np.sqrt(del_miss_2.shape[0])))[1]
+
+        # mode of feature column without the missing values
+        mode1 = (bins1[count1] + bins1[count1 + 1]) / 2
+        mode2 = (bins2[count2] + bins2[count2 + 1]) / 2
+
+        modes1.append(mode1)  # append the mode of each column into the list
+        modes2.append(mode2)
+
+        modes = [modes1, modes2]
+    return modes, cols  # return modes list and list of indices of columns that are missing values
