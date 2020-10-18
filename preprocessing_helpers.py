@@ -118,3 +118,43 @@ def find_modes(x, y):
 
         modes = [modes1, modes2]
     return modes, cols  # return modes list and list of indices of columns that are missing values
+
+
+def find_and_replace(x, y, cols, bool=True, value=False):
+    '''If bool is set to True in the argument valu, provide list (in the order: 1 and -1) of 2 lists (one for
+    each label) of values to be replaced. The sublists   must be of length 11 (number of columns that have
+    missing values, and must be in the same order as the columns given below). If set to False replace all the
+    missing values with the constant term.
+    Order in which the values should be provided [0, 4, 5, 6, 12, 23, 24, 25, 26, 27, 28] where numbers represent the
+    column indices.'''
+
+    miss_x = x[:, cols]    # select only columns that have missing values
+    red_x = np.delete(x, cols, axis=1)     # delete columns that have missing values from the original x
+
+    if bool:
+        modes1 = value[0]
+        modes2 = value[1]
+        for i in range(y.shape[0]):
+            if y[i] == 1:    # if label is 1
+                for j in range(miss_x.shape[1]):    # go through row of X
+                    if miss_x[i, j] == -999:     # if the data is missing
+                        miss_x[i, j] = modes1[j]    # replace it the desired value
+            else:
+                for j in range(miss_x.shape[1]):
+                    if miss_x[i, j] == -999:
+                        miss_x[i, j] = modes2[j]
+    else:
+        for i in range(y.shape[0]):
+            if y[i] == 1:    # if label is 1
+                for j in range(miss_x.shape[1]):    # go through row of X
+                    if miss_x[i, j] == -999:     # if the data is missing
+                        miss_x[i, j] = value    # replace be the desired value
+            else:
+                for j in range(miss_x.shape[1]):
+                    if miss_x[i, j] == -999:
+                        miss_x[i, j] = value
+
+    x = np.column_stack((red_x, miss_x))    # combine the 2 back together
+
+    return x
+
