@@ -194,23 +194,30 @@ def logistic_accuracy(ytest, xtest, w):
 
 def reg_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
     '''Implement regularized logistic regression with GD method'''
+
     P = list(ytest).count(1)   # number of 1s in test set
     N = list(ytest).count(-1)  # number of -1s in test set
+
     k = 200     # number of steps over which we observe loss to make sure it becomes smaller
     losses = np.zeros(max_iters)    # initialize matrix to record losses
     y = (y + 1)/2   # our labels are -1, 1 need to convert them to 0 and 1 for logistic regression
+
     i = 0
     for n in tqdm(range(max_iters)):
         if i <= k:
             grad = np.dot(x.T, (y - sigma(x, w)))/y.shape[0] + lmbd*np.linalg.norm(w)*w #grad of loss of logistic function
             w += -gamma*grad    # take a step
+            
             loss = -(np.dot(y, np.log(sigma(x, w))) - np.dot((1 - y), np.log(1 - sigma(x, w)))) / y.shape[0] + \
                    lmbd * np.sum(w ** 2) / 2
             losses[n] = loss  # stores losses
+
             tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w) # outputs confusion matrix
+
             sys.stdout.write('TN={0} TP={1} Accuracy={2}\r'.format("{:.2f}%".format(100*tn/N), '{: .2f}%'.format(100*tp/P), '{: .2f}%'.format(100*(tp+tn)/(N+P))))
             sys.stdout.flush()
             time.sleep(0.001)
+
         else:
             if losses[n-1] <= 0.9*losses[n-k]:  # if loss improves keep looping with the same gamma
                 pass
@@ -221,10 +228,13 @@ def reg_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
 
             grad = np.dot(x.T, (y - sigma(x, w)))/y.shape[0] + lmbd*np.linalg.norm(w)*w #grad of loss of logistic function
             w += -gamma*grad    # take a step
+
             loss = -(np.dot(y, np.log(sigma(x, w))) - np.dot((1 - y), np.log(1 - sigma(x, w))))/y.shape[0] + \
                    lmbd*np.sum(w**2)/2
             losses[n] = loss
+
             tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w)
+
             sys.stdout.write('TN={0} TP={1} Accuracy={2}\r'.format("{:.2f}%".format(100*tn/N), '{: .2f}%'.format(100*tp/P), '{: .2f}%'.format(100*(tp+tn)/(N+P))))
             sys.stdout.flush()
             time.sleep(0.001)
