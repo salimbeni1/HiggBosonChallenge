@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def compute_mse_loss(y, tx, w):
     '''Computes MSE loss calculator'''
     loss = np.sum((y - np.dot(tx, w))**2)/(2*y.shape[0]) #compute loss
@@ -6,7 +9,7 @@ def compute_mse_loss(y, tx, w):
     
 def compute_residuals(y, tx, w):
     '''Compute residuals between the predicted regression and y'''
-    e = y - np.dot(x, w.T)    #compute residual
+    e = y - np.dot(tx, w.T)    #compute residual
     return e    # returns residuals
 
 
@@ -16,14 +19,14 @@ def compute_grad(y, tx, w):
     return grad # returns grad
 
 
-def least_sqaures_GD(y, tx, initial_w, max_iters, gamma):
+def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     '''Implements GD method with step size gamma and max number of iterations given'''
     losses = np.zeros(max_iters) # initialize the matrix to record the losses
     w = initial_w 
     for n in range(max_iters):
         w +=  - gamma*compute_grad(y, tx, w) #take a step
         loss = compute_mse_loss(y, tx, w) #compute loss
-        losses[n] = loss_train #record loss
+        losses[n] = loss #record loss
     return w, losses[-1]    # return the weight matrix and the last loss
 
 
@@ -56,7 +59,7 @@ def ridge_regression(y, tx, lambda_):
     return w, loss  
 
 def sigma(tx, w):
-'''Define logistic function'''
+    '''Define logistic function'''
     sigma = 1/(1+np.exp(np.dot(tx, w))) #definition of sigma function
     return sigma  
 
