@@ -65,20 +65,18 @@ def ridge_regression(y, tx, lambda_):
 
 ######################################################################################
 
-def sigma(tx, w):
-    '''Define logistic function'''
-    return 1/( 1+np.exp(-(tx @ w)) )  
+def sigmoid(x):
+    return 1/(1+np.exp(-x))
 
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
-    '''Implemensts logistic regression with GD method'''
+    '''Implement logistic regression with GD method'''
     w = initial_w
-    losses = np.zeros(max_iters)    # initialize matrix to record losses
-    for n in range(max_iters):
-        grad = tx.T @ (sigma(tx, w) - y) # grad of loss of logistic function
-        w += -gamma*grad
-        losses[n] = 1 
-        # -(np.dot(y, np.log(sigma(tx, w))) - np.dot((1 - y), (np.log(1 - sigma(tx, w)))))
+    losses = np.zeros(max_iters)
+    for n_iter in range(max_iters):
+        grad = tx.T @ (sigmoid(tx @ w) - y)
+        losses[n_iter] = np.sum( np.logaddexp(0,tx @ w) - y * (tx @ w) ) / y.shape[0]
+        w += -gamma * grad
 
     return w, losses[-1]
 

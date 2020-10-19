@@ -3,6 +3,7 @@
 import csv
 import numpy as np
 from preprocessing_helpers import *
+from Basics import *
 
 
 def load_csv_data(data_path, sub_sample=False):
@@ -62,17 +63,16 @@ def get_accuracy( w , testY , testF ):
     return res[True]/(res[True]+res[False])
 
 
-def predict_logistic_labels(weights, data, threshold=0.5):
+def predict_labels_logistic(weights, data):
     """Generates class predictions given weights, and a test data matrix"""
-
-    y_pred = sigma( data,weights )
-    y_pred[np.where(y_pred <= threshold)] = -1
-    y_pred[np.where(y_pred > threshold)] = 1
+    y_pred = sigmoid(np.dot(data, weights))
+    y_pred[np.where(y_pred <= 0.5)] = -1
+    y_pred[np.where(y_pred > 0.5)] = 1
     return y_pred
 
-def get_accuracy_logi( w , testY , testF ):
+def get_accuracy_logistic( w , testY , testF ):
     
-    y_pred = predict_logistic_labels( w , testF )
+    y_pred = predict_labels_logistic( w , testF )
     unique, counts = np.unique((y_pred == testY) , return_counts=True)
     res = dict(zip(unique, counts))
 
