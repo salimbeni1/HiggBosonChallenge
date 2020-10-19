@@ -48,7 +48,7 @@ def least_squares_SGD(y, tx, initial_w,  max_iters, gamma, batch_size=1):
 
 def least_squares(y, tx):
     '''Simple OLS function'''
-    w =  np.linalg.solve( tx.t @ tx, tx.T @ y)
+    w =  np.linalg.solve( tx.T @ tx, tx.T @ y)
     loss = compute_mse_loss(y, tx, w)
     
     return w, loss
@@ -59,7 +59,7 @@ def ridge_regression(y, tx, lambda_):
     '''Implements ridge regression (similar to OLS)'''
     w = np.linalg.solve( (tx.T @ tx) + 2*tx.shape[0]*lambda_*np.identity(tx.shape[1]), tx.T @ y)
     # modified loss for ridge regression 
-    loss = np.sum((y - np.dot(tx, w))**2)/(2*y.shape[0]) + lambda_*np.sum(w**2) 
+    loss = np.sum((y - (tx @ w))**2)/(2*tx.shape[0]) + lambda_*np.sum(w**2) 
     
     return w, loss  
 
@@ -90,10 +90,9 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     w = initial_w   
     losses = np.zeros(max_iters) #initialize matrix to record losses
     for n in range(max_iters):
-        grad = np.dot(tx.T, (y - sigma(tx, w))) + lambda_*np.linalg.norm(w)*w #grad of loss of logistic function
-        w += -gamma*grad/y_shape[0]    # take a step
-        loss = -(np.dot(y, np.log(sigma(tx, w))) - np.dot((1 - y), np.log(1 - sigma(tx, w)))) + lambda_*np.sum(w**2)/2  # computes loss
-        losses[n] = loss  # stores losses
+        grad = (tx.T @ (sigmoid(tx @ w) - y)) - 2 * lambda_ * w
+        w += -gamma * grad
+        losses[n] = (np.sum( np.logaddexp(0,tx @ w) - y*(tx @ w) )/y.shape[0]) - np.asscalar(lambda_ * np.transpose(tx).dot(w))
         
     return w, losses[-1]
 
