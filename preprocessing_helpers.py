@@ -207,7 +207,7 @@ def reg_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
         if i <= k:
             grad = np.dot(x.T, (y - sigma(x, w)))/y.shape[0] + lmbd*np.linalg.norm(w)*w #grad of loss of logistic function
             w += -gamma*grad    # take a step
-            
+
             loss = -(np.dot(y, np.log(sigma(x, w))) - np.dot((1 - y), np.log(1 - sigma(x, w)))) / y.shape[0] + \
                    lmbd * np.sum(w ** 2) / 2
             losses[n] = loss  # stores losses
@@ -241,4 +241,53 @@ def reg_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
 
       i += 1
     return w, losses, tp, fp, tn, fn  # return the weight matrix and loss
+
+
+def shuffle(x, y):
+    shuffle_indices = np.random.permutation(np.arange(y.shape[0]))
+    y = y[shuffle_indices]  # rearranges the Y_train based on the shuffled indices
+    x = x[shuffle_indices]  # rearranges the X)train based on the shuffled indices
+    return x, y
+
+
+def under_over(x, y, alpha=1, upsample=True, middle=True, gaussian=False, std=0.1, downsample=False):
+    '''This function allows us to either undersample the labels -1 or upsample the labels1. There are 2 ways in which
+    upsampling can happen. First it takes the middle values of the adjacent point or takes the existing standartized
+    data and add gaussian noice with a mean 0 and provided std. Argument alpha allows us to choose what proportion of
+    existing data point to add. Eg: if the labels are 10/5 of -1 and 1 respectively, setting alpha=1 will add 5 more
+    1s, if alpha=0.2 it will add one etc.
+    For the case of undesampling alpha determines the proportion of points that are left over. E.g if alpha=0.2 only
+    2 points will be left, if alpha=0.5 5 will be left and so on.'''
+    index = np.argsort(y)  # returns the indices of the sorted labels
+
+    y = y[index]  # sorts the labels based on indices
+    x = x[index]  # sorts the data based on indices
+
+    if upsample:
+        x_one, one = shuffle(x[np.where(y == 1)[0][0]:, :],
+                             y[np.where(y == 1)[0][0]:])  # shuffles the sorted labels of 1
+        if middle:
+            x_one = (x_one[1:] + x_one[:-1]) / 2  # takes the middle value between adjacent points
+
+        elif gaussian:
+            x_one += std * np.random.randn(x_one.shape[0],
+                                           x_one.shape[1])  # adds assign noise with 0 mean and std=0.1
+
+        x = np.vstack((x, x_one[:int(alpha * x_one.shape[0]), :]))  # add the data point from the bottom
+        y = np.hstack((y, one[:int(alpha * x_one.shape[0])]))  # stacks the full labels and the new labels of 1s
+
+    elif downsample:
+        x_m_one, m_one = shuffle(x[:np.where(y == 1)[0][0]],
+                                 y[:np.where(y == 1)[0][0]])  # shuffles the sorted labels of -1
+
+        x_m_one = x_m_one[:int(alpha * x_m_one.shape[0]), :]  # takes the slice
+        m_one = m_one[:int(alpha * x_m_one.shape[0])]
+        x = np.vstack((x[np.where(y == 1)[0][0]:, :], x_m_one))  # stacks 1s and the slice of -1
+        y = np.hstack((y[np.where(y == 1)[0][0]:], m_one))
+
+    x, y = shuffle(x, y)
+
+    return x, y
+
+
 
