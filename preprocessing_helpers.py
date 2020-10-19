@@ -239,7 +239,7 @@ def reg_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
             sys.stdout.flush()
             time.sleep(0.001)
 
-      i += 1
+        i += 1
     return w, losses, tp, fp, tn, fn  # return the weight matrix and loss
 
 

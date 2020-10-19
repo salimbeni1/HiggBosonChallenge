@@ -2,6 +2,7 @@
 """some helper functions for project 1."""
 import csv
 import numpy as np
+from preprocessing_helpers import *
 
 
 def load_csv_data(data_path, sub_sample=False):
@@ -59,3 +60,21 @@ def get_accuracy( w , testY , testF ):
     res = dict(zip(unique, counts)) 
 
     return res[True]/(res[True]+res[False])
+
+
+def predict_logistic_labels(weights, data, threshold=0.5):
+    """Generates class predictions given weights, and a test data matrix"""
+
+    y_pred = sigma( data,weights )
+    y_pred[np.where(y_pred <= threshold)] = -1
+    y_pred[np.where(y_pred > threshold)] = 1
+    return y_pred
+
+def get_accuracy_logi( w , testY , testF ):
+    
+    y_pred = predict_logistic_labels( w , testF )
+    unique, counts = np.unique((y_pred == testY) , return_counts=True)
+    res = dict(zip(unique, counts))
+
+    return res[True]/(res[True]+res[False])
+
