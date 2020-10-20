@@ -210,7 +210,7 @@ def logistic_accuracy(ytest, xtest, w):
     return tp, fp, tn, fn
 
 
-def reg_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
+def foo_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
     '''Implement regularized logistic regression with GD method'''
 
     P = list(ytest).count(1)   # number of 1s in test set
@@ -257,7 +257,7 @@ def reg_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
             sys.stdout.flush()
             time.sleep(0.001)
 
-      i += 1
+        i += 1
     return w, losses, tp, fp, tn, fn  # return the weight matrix and loss
 
 
@@ -308,7 +308,7 @@ def under_over(x, y, alpha=1, upsample=True, middle=True, gaussian=False, std=0.
     return x, y
 
 
-def replace_missing_values(tx,y, val, cst = 0):
+def replace_missing_values(tx, val, cst = 0):
     """
         Replace missing values with constant values. There are four ways tested:
         it is possible to replace with a constant value for the whole matrix (0 by default)
@@ -354,7 +354,7 @@ def replace_missing_values(tx,y, val, cst = 0):
         modes = np.zeros(tx.shape[1])
         
         for i in np.arange(tx.shape[1]):
-            bins = np.histogram(tx[:,i][~np.isnan(tx[:,i])], bins = len(y)) #divide vect in bins
+            bins = np.histogram(tx[:,i][~np.isnan(tx[:,i])], bins = tx.shape[0]) #divide vect in bins
             idx = np.argmax(bins[0]) #index of the bins with the largest number of values
             mode = bins[1] #vector with the starting points of the bins
             mode = mode[idx] #take the starting value of the bins with the largest number of values in it
