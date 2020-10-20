@@ -5,7 +5,7 @@ import sys
 
 
 
-def standardize(x):
+def standardize(x, x_test):
 
     """
         Standardize the original data set ignoring the missing values.
@@ -13,23 +13,30 @@ def standardize(x):
         Args:
             x : matrix with samples (dimensions: (N, M) where N is the number of samples and M the number 
                 of features)
+            x_test : test dataset to standardize with the mean and std of the trianing dataset
         
         Returns: 
-            standardized_x : standardized data
-            mean_x : mean of the original data
-            std_x : standrd deviation of the original data
+            standardized_x : standardized train data
+            stand_x_tet : standardized test data
     """
     
     mask = x == -999.
     x[mask] = np.nan
     
+    mask_test = x_test == -999.
+    x_test[mask_test] = np.nan
+    
     mean_x = np.nanmean(x, axis=0)
     centered_x = x - mean_x
     std_x = np.nanstd(centered_x, axis=0)
     standardized_x = centered_x / (std_x + 1e-10)
-    standardized_x[np.isnan(standardized_x)] = -999.
     
-    return standardized_x, mean_x, std_x
+    stand_x_test = (x_test-mean_x)/(std_x + 1e-10)
+    
+    standardized_x[np.isnan(standardized_x)] = -999.
+    stand_x_test[np.isnan(stand_x_test)] = -999.
+    
+    return standardized_x, stand_x_test
 
 
 
@@ -308,83 +315,65 @@ def under_over(x, y, alpha=1, upsample=True, middle=True, gaussian=False, std=0.
     return x, y
 
 
-def replace_missing_values(tx, val, cst = 0):
+def replace_missing_values(x, x_test, val, cst = 0):
     """
         Replace missing values with constant values. There are four ways tested:
         it is possible to replace with a constant value for the whole matrix (0 by default)
         or with the mean, median or mode of the feature.
         
         Args:
-            tx : matrix with samples (dimensions: (N, M) where N is the number of samples and 
-                M the number of features). It contains missing values.  
-            y : vector containing the labels (dimension: N)
+            x : matrix with samples (dimensions: (N, M) where N is the number of samples and 
+                M the number of features). It contains missing values.
+            x_test : test dataset where missing values need to be replaced with the values obtained
+                     with the trianing dataset
             val : it defines the constant and how the missing values are going to be replaced. 
                 It can be 'constant', 'mean', 'median' or 'mode'. 
             cst : if val == 'constant', the constant can be defined (0 by default)
             
         Returns: 
-            tx : matrix with missing values replaced
-            mean : if val == mean, it returns the vector with features' means.
-            median: if val == median, it returns the vector with features' medians.
-            mode: if val == mode, it returns the vector with features' modes.
+            x : matrix with missing values replaced
+            x_test : test matrix with missing values replaced
     """
     
-    mask = tx == -999.
-    tx[mask] = np.nan
+    mask = x == -999.
+    mask_test = x_test == -999.
+    x[mask] = np.nan
+    x_test[mask_test] = np.nan
     
     if val == 'constant':
-        tx[mask] = cst
-        return tx
+        x[mask] = cst
+        x_test[mask_test] = cst
+        return x, x_test
         
     if val == 'mean':
-        mean = np.nanmean(tx, axis=0)
+        mean = np.nanmean(x, axis=0)
         
-        for i in np.arange(tx.shape[1]):
-            tx[:,i][np.isnan(tx[:,i])] = mean[i]
-        return tx, mean
+        for i in np.arange(x.shape[1]):
+            x[np.isnan(x[:,i]),i] = mean[i]
+            x_test[np.isnan(x_test[:,i]),i] = mean[i]
+        return x, x_test
     
     if val == 'median':
-        median = np.nanmedian(tx, axis =0)
+        median = np.nanmedian(x, axis =0)
         
-        for i in np.arange(tx.shape[1]):
-            tx[:,i][np.isnan(tx[:,i])] = median[i]
-        return tx, median
+        for i in np.arange(x.shape[1]):
+            x[np.isnan(x[:,i]),i] = median[i]
+            x_test[np.isnan(x_test[:,i]),i] = median[i]
+        return x, x_test
     
     if val == 'mode':
-        modes = np.zeros(tx.shape[1])
         
-        for i in np.arange(tx.shape[1]):
-            bins = np.histogram(tx[:,i][~np.isnan(tx[:,i])], bins = tx.shape[0]) #divide vect in bins
+        for i in np.arange(x.shape[1]):
+            bins = np.histogram(x[:,i][~np.isnan(x[:,i])], bins = x.shape[0]) #divide vect in bins
             idx = np.argmax(bins[0]) #index of the bins with the largest number of values
             mode = bins[1] #vector with the starting points of the bins
             mode = mode[idx] #take the starting value of the bins with the largest number of values in it
-            modes[i] = mode
-            tx[np.isnan(tx[:,i]),i] = mode #replace nan with the mode
-        
-        return tx, modes
+            x[np.isnan(x[:,i]),i] = mode #replace nan with the mode
+            x_test[np.isnan(x_test[:,i]),i] = mode
+            
+        return x, x_test
+            
 
-def replace_missing_value_test(tx,val):
-    
-    """
-        Replace the missing values in the test dataset. If the value to replace is a constant
-        for the whole matrix, val is a vector of dimension M (number of features) filled with
-        the constant value (for example 0)
-        
-        Args:
-            tx : matrix with samples (dimensions: (N, M) where N is the number of samples and 
-                M the number of features)   
-            val : vector with the values to replace (dimension: M, the number of features)
-        
-        Returns: 
-            x_ : standardized test dataset
-    """
-    mask = tx == -999.
-    tx[mask] = np.nan
-    
-    for i in np.arange(tx.shape[1]):
-        tx[mask[:,i],i] = val[i]
-    
-    return tx
 
 def outliers_removal(tx):
     
