@@ -368,4 +368,5 @@ def outliers_removal(tx):
         mask_high =  (tx[:,i] > q75[i] + thr[i])
         tx[mask_low,i] = q25[i] - thr[i] #replace outliers with the limits of the range we accept
         tx[mask_high,i] = q75[i] + thr[i]
+        
     return tx
