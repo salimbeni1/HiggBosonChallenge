@@ -21,7 +21,6 @@ def compute_log_gradient(y, tx, w):
     """Compute the gradient for the logistic regression"""
 
     val = np.dot(tx, w)
-    #y_ = np.expand_dims(y_, axis=1)
     grad = np.dot(tx.T, (sigma_fct(val)-y))
     
     return grad

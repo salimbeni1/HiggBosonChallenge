@@ -4,14 +4,32 @@ import time
 import sys
 
 
+
 def standardize(x):
-    
-    centered_data = x - np.mean(x, axis=0)
-    std_data = centered_data / np.std(centered_data, axis=0)
-    
-    return std_data , np.mean(x, axis=0) , np.std(centered_data, axis=0)
 
-
+    """
+        Standardize the original data set ignoring the missing values.
+        
+        Args:
+            x : matrix with samples (dimensions: (N, M) where N is the number of samples and M the number 
+                of features)
+        
+        Returns: 
+            standardized_x : standardized data
+            mean_x : mean of the original data
+            std_x : standrd deviation of the original data
+    """
+    
+    mask = x == -999.
+    x[mask] = np.nan
+    
+    mean_x = np.nanmean(x, axis=0)
+    centered_x = x - mean_x
+    std_x = np.nanstd(centered_x, axis=0)
+    standardized_x = centered_x / (std_x + 1e-10)
+    standardized_x[np.isnan(standardized_x)] = -999.
+    
+    return standardized_x, mean_x, std_x
 
 
 
