@@ -290,4 +290,82 @@ def under_over(x, y, alpha=1, upsample=True, middle=True, gaussian=False, std=0.
     return x, y
 
 
+def replace_missing_values(tx,y, val, cst = 0):
+    """
+        Replace missing values with constant values. There are four ways tested:
+        it is possible to replace with a constant value for the whole matrix (0 by default)
+        or with the mean, median or mode of the feature.
+        
+        Args:
+            tx : matrix with samples (dimensions: (N, M) where N is the number of samples and 
+                M the number of features). It contains missing values.  
+            y : vector containing the labels (dimension: N)
+            val : it defines the constant and how the missing values are going to be replaced. 
+                It can be 'constant', 'mean', 'median' or 'mode'. 
+            cst : if val == 'constant', the constant can be defined (0 by default)
+            
+        Returns: 
+            tx : matrix with missing values replaced
+            mean : if val == mean, it returns the vector with features' means.
+            median: if val == median, it returns the vector with features' medians.
+            mode: if val == mode, it returns the vector with features' modes.
+    """
+    
+    mask = tx == -999.
+    tx[mask] = np.nan
+    
+    if val == 'constant':
+        tx[mask] = cst
+        return tx
+        
+    if val == 'mean':
+        mean = np.nanmean(tx, axis=0)
+        
+        for i in np.arange(tx.shape[1]):
+            tx[:,i][np.isnan(tx[:,i])] = mean[i]
+        return tx, mean
+    
+    if val == 'median':
+        median = np.nanmedian(tx, axis =0)
+        
+        for i in np.arange(tx.shape[1]):
+            tx[:,i][np.isnan(tx[:,i])] = median[i]
+        return tx, median
+    
+    if val == 'mode':
+        modes = np.zeros(tx.shape[1])
+        
+        for i in np.arange(tx.shape[1]):
+            bins = np.histogram(tx[:,i][~np.isnan(tx[:,i])], bins = len(y)) #divide vect in bins
+            idx = np.argmax(bins[0]) #index of the bins with the largest number of values
+            mode = bins[1] #vector with the starting points of the bins
+            mode = mode[idx] #take the starting value of the bins with the largest number of values in it
+            modes[i] = mode
+            tx[np.isnan(tx[:,i]),i] = mode #replace nan with the mode
+        
+        return tx, modes
 
+def outliers_removal(tx):
+    
+    """
+        Remove outliers. Since the distribution is not normal, we remove outliers depending
+        on the interquartile range. If the values are above or belove the interquartile range x 1.5
+        they are replaced by the limit values (above and below)
+        
+        Args:
+            tx : matrix with samples (dimensions: (N, M) where N is the number of samples and 
+                M the number of features)   
+        
+        Returns: 
+            tx : matrix without outliers
+    """
+    q25, q75 = np.percentile(tx, 25, axis=0), np.percentile(tx, 75, axis=0) #compute 25 and 75 quartile
+    iqr = q75 - q25 #interquartile range
+    thr = iqr * 1.5
+  
+    for i in np.arange(tx.shape[1]):
+        mask_low = (tx[:,i] < q25[i] - thr[i]) #true value are outliers
+        mask_high =  (tx[:,i] > q75[i] + thr[i])
+        tx[mask_low,i] = q25[i] - thr[i] #replace outliers with the limits of the range we accept
+        tx[mask_high,i] = q75[i] + thr[i]
+    return tx
