@@ -363,6 +363,29 @@ def replace_missing_values(tx, val, cst = 0):
         
         return tx, modes
 
+def replace_missing_value_test(tx,val):
+    
+    """
+        Replace the missing values in the test dataset. If the value to replace is a constant
+        for the whole matrix, val is a vector of dimension M (number of features) filled with
+        the constant value (for example 0)
+        
+        Args:
+            tx : matrix with samples (dimensions: (N, M) where N is the number of samples and 
+                M the number of features)   
+            val : vector with the values to replace (dimension: M, the number of features)
+        
+        Returns: 
+            x_ : standardized test dataset
+    """
+    mask = tx == -999.
+    tx[mask] = np.nan
+    
+    for i in np.arange(tx.shape[1]):
+        tx[mask[:,i],i] = val[i]
+    
+    return tx
+
 def outliers_removal(tx):
     
     """
