@@ -2,38 +2,37 @@ import numpy as np
 
 
 
-def standardize(x, x_test):
-
+def standardize(trainF, testF):
     """
         Standardize the original data set ignoring the missing values.
         
         Args:
-            x : matrix with samples (dimensions: (N, M) where N is the number of samples and M the number 
+            trainF : matrix with samples (dimensions: (N, M) where N is the number of samples and M the number 
                 of features)
-            x_test : test dataset to standardize with the mean and std of the trianing dataset
+            testF : test dataset to standardize with the mean and std of the trianing dataset
         
         Returns: 
-            standardized_x : standardized train data
-            stand_x_tet : standardized test data
+            standardized_train : standardized train data
+            standardized_test : standardized test data
     """
     
-    mask = x == -999.
-    x[mask] = np.nan
+    mask_train , mask_test = (trainF == -999) , (testF == -999.)
+    trainF[mask_train] = np.nan
+    testF[mask_test] = np.nan
     
-    mask_test = x_test == -999.
-    x_test[mask_test] = np.nan
+    mean = np.nanmean(trainF, axis=0)
+    centered_trainF = trainF - mean
+    std = np.nanstd(centered_trainF, axis=0)
+    standardized_train = centered_trainF / (std + 1e-10)
     
-    mean_x = np.nanmean(x, axis=0)
-    centered_x = x - mean_x
-    std_x = np.nanstd(centered_x, axis=0)
-    standardized_x = centered_x / (std_x + 1e-10)
+    # standardize test_set with x mean and std
+    standardized_test = (testF-mean)/(std + 1e-10)
     
-    stand_x_test = (x_test-mean_x)/(std_x + 1e-10)
+    # replace missing values
+    standardized_train[mask_train] = -999.
+    standardized_test[mask_test] = -999.
     
-    standardized_x[np.isnan(standardized_x)] = -999.
-    stand_x_test[np.isnan(stand_x_test)] = -999.
-    
-    return standardized_x, stand_x_test
+    return standardized_train, standardized_test
 
 
 
@@ -44,7 +43,6 @@ def select_and_expand_f( arrF):
         Args:
             arrF : (N,31) array of features , where first feature is the bias (arrF[:,0] == 1)
                     the order of the features must be the same of the csv file.
-                    ( only tested on stardardize data , with -999 and outliers )
         
         Returns: 
             new_arr : (N,19) array , combination of selected and new features
@@ -74,7 +72,6 @@ def select_and_expand_f( arrF):
         new_arr[:,temp + ind] = arrF[:,comb3Ind[ind][0]] *arrF[:,comb3Ind[ind][1]] *arrF[:,comb3Ind[ind][2]]
      
     temp += len(comb3Ind)
-    
     
     # log(1**2)*5*2
     new_arr[:,temp] = np.log(arrF[:,1]**2)*arrF[:,5] *arrF[:,2]
@@ -184,80 +181,6 @@ def find_and_replace(x, y, cols, bool=True, value=False):
     return x
 
 
-def sigma(x, w):
-    '''Define logistic function'''
-    sigma = 1/(1+np.exp(np.dot(x, w)))
-    return sigma
-
-
-def predict_logistic_labels(xtest, w):
-    '''Changed version of predict labels function to account for the fact
-    that logistic regression outputs answers between 0 and 1 and not -1 and 1'''
-    y_pred = 1 / (1 + np.exp(np.dot(xtest, w.T)))  # prediction of the logistic function
-    y_pred[np.where(y_pred <= 1 / 2)] = -1
-    y_pred[np.where(y_pred > 1 / 2)] = 1
-    return y_pred
-
-
-
-def logistic_accuracy(ytest, xtest, w):
-    y_pred = predict_logistic_labels(xtest, w)
-    #positive == 1
-    #negative == -1
-    ytest = (ytest + 1)/2
-    y_sum = y_pred + ytest  # adds true and predicted values
-    tp = list(y_sum).count(2)   # true positives
-    fp = list(y_sum).count(0)   # false positives
-    tn = list(y_sum).count(-1)  # true negatives
-    fn = list(y_sum).count(1)   # false negatives
-
-    return tp, fp, tn, fn
-
-
-def foo_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
-    '''Implement regularized logistic regression with GD method'''
-
-    P = list(ytest).count(1)   # number of 1s in test set
-    N = list(ytest).count(-1)  # number of -1s in test set
-
-    k = 200     # number of steps over which we observe loss to make sure it becomes smaller
-    losses = np.zeros(max_iters)    # initialize matrix to record losses
-    y = (y + 1)/2   # our labels are -1, 1 need to convert them to 0 and 1 for logistic regression
-
-    i = 0
-    for n in range(max_iters):
-        if i <= k:
-            grad = np.dot(x.T, (y - sigma(x, w)))/y.shape[0] + lmbd*np.linalg.norm(w)*w #grad of loss of logistic function
-            w += -gamma*grad    # take a step
-
-            loss = -(np.dot(y, np.log(sigma(x, w))) - np.dot((1 - y), np.log(1 - sigma(x, w)))) / y.shape[0] + \
-                   lmbd * np.sum(w ** 2) / 2
-            losses[n] = loss  # stores losses
-
-            tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w) # outputs confusion matrix
-
-            
-
-        else:
-            if losses[n-1] <= 0.9*losses[n-k]:  # if loss improves keep looping with the same gamma
-                pass
-            else:
-                gamma = 0.9*gamma # if not make the step smaller
-              
-                i = 0
-
-            grad = np.dot(x.T, (y - sigma(x, w)))/y.shape[0] + lmbd*np.linalg.norm(w)*w #grad of loss of logistic function
-            w += -gamma*grad    # take a step
-
-            loss = -(np.dot(y, np.log(sigma(x, w))) - np.dot((1 - y), np.log(1 - sigma(x, w))))/y.shape[0] + \
-                   lmbd*np.sum(w**2)/2
-            losses[n] = loss
-
-            tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w)
-
-        i += 1
-    print(100*(tp+tn)/(N+P))
-    return w, losses, tp, fp, tn, fn  # return the weight matrix and loss
 
 
 def shuffle(x, y):
@@ -275,6 +198,7 @@ def under_over(x, y, alpha=1, upsample=True, middle=True, gaussian=False, std=0.
     1s, if alpha=0.2 it will add one etc.
     For the case of undesampling alpha determines the proportion of points that are left over. E.g if alpha=0.2 only
     2 points will be left, if alpha=0.5 5 will be left and so on.'''
+    
     index = np.argsort(y)  # returns the indices of the sorted labels
 
     y = y[index]  # sorts the labels based on indices
@@ -364,8 +288,9 @@ def replace_missing_values(x, x_test, val, cst = 0):
             x_test[np.isnan(x_test[:,i]),i] = mode
             
         return x, x_test
-            
-
+    
+    raise Exception("not defined method to replace missing values")
+    
 
 def outliers_removal(tx):
     
@@ -392,3 +317,84 @@ def outliers_removal(tx):
         tx[mask_high,i] = q75[i] + thr[i]
         
     return tx
+
+
+
+
+#//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# what r we gonna do with this ?
+
+def sigma(x, w):
+    '''Define logistic function'''
+    sigma = 1/(1+np.exp(np.dot(x, w)))
+    return sigma
+
+
+def predict_logistic_labels(xtest, w):
+    '''Changed version of predict labels function to account for the fact
+    that logistic regression outputs answers between 0 and 1 and not -1 and 1'''
+    y_pred = 1 / (1 + np.exp(np.dot(xtest, w.T)))  # prediction of the logistic function
+    y_pred[np.where(y_pred <= 1 / 2)] = -1
+    y_pred[np.where(y_pred > 1 / 2)] = 1
+    return y_pred
+
+
+
+def logistic_accuracy(ytest, xtest, w):
+    y_pred = predict_logistic_labels(xtest, w)
+    #positive == 1
+    #negative == -1
+    ytest = (ytest + 1)/2
+    y_sum = y_pred + ytest  # adds true and predicted values
+    tp = list(y_sum).count(2)   # true positives
+    fp = list(y_sum).count(0)   # false positives
+    tn = list(y_sum).count(-1)  # true negatives
+    fn = list(y_sum).count(1)   # false negatives
+
+    return tp, fp, tn, fn
+
+
+def foo_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
+    '''Implement regularized logistic regression with GD method'''
+
+    P = list(ytest).count(1)   # number of 1s in test set
+    N = list(ytest).count(-1)  # number of -1s in test set
+
+    k = 200     # number of steps over which we observe loss to make sure it becomes smaller
+    losses = np.zeros(max_iters)    # initialize matrix to record losses
+    y = (y + 1)/2   # our labels are -1, 1 need to convert them to 0 and 1 for logistic regression
+
+    i = 0
+    for n in range(max_iters):
+        if i <= k:
+            grad = np.dot(x.T, (y - sigma(x, w)))/y.shape[0] + lmbd*np.linalg.norm(w)*w #grad of loss of logistic function
+            w += -gamma*grad    # take a step
+
+            loss = -(np.dot(y, np.log(sigma(x, w))) - np.dot((1 - y), np.log(1 - sigma(x, w)))) / y.shape[0] + \
+                   lmbd * np.sum(w ** 2) / 2
+            losses[n] = loss  # stores losses
+
+            tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w) # outputs confusion matrix
+
+            
+
+        else:
+            if losses[n-1] <= 0.9*losses[n-k]:  # if loss improves keep looping with the same gamma
+                pass
+            else:
+                gamma = 0.9*gamma # if not make the step smaller
+              
+                i = 0
+
+            grad = np.dot(x.T, (y - sigma(x, w)))/y.shape[0] + lmbd*np.linalg.norm(w)*w #grad of loss of logistic function
+            w += -gamma*grad    # take a step
+
+            loss = -(np.dot(y, np.log(sigma(x, w))) - np.dot((1 - y), np.log(1 - sigma(x, w))))/y.shape[0] + \
+                   lmbd*np.sum(w**2)/2
+            losses[n] = loss
+
+            tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w)
+
+        i += 1
+    print(100*(tp+tn)/(N+P))
+    return w, losses, tp, fp, tn, fn  # return the weight matrix and loss
