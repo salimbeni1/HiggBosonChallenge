@@ -52,6 +52,23 @@ def create_csv_submission(ids, y_pred, name):
 ###                               ###
 #####################################
 
+def predict_labels_logistic(w , testF):
+    '''Changed version of predict labels function to account for the fact
+    that logistic regression outputs answers between 0 and 1 and not -1 and 1'''
+    y_pred = 1 / (1 + np.exp(- np.dot(testF, w)))  # prediction of the logistic function
+    y_pred[np.where(y_pred <= 0.5)] = -1
+    y_pred[np.where(y_pred > 0.5)] = 1
+    return y_pred
+
+def get_accuracy_logistic( w , testY , testF ):
+    
+    y_pred = predict_labels_logistic( w , testF )
+    unique, counts = np.unique((y_pred == testY) , return_counts=True)
+    res = dict(zip(unique, counts)) 
+
+    return res[True]/(res[True]+res[False])
+
+
 def get_accuracy( w , testY , testF ):
     
     y_pred = predict_labels( w , testF )

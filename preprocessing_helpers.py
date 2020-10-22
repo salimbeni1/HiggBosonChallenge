@@ -1,7 +1,4 @@
 import numpy as np
-from tqdm import tqdm
-import time
-import sys
 
 
 
@@ -228,7 +225,7 @@ def foo_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
     y = (y + 1)/2   # our labels are -1, 1 need to convert them to 0 and 1 for logistic regression
 
     i = 0
-    for n in tqdm(range(max_iters)):
+    for n in range(max_iters):
         if i <= k:
             grad = np.dot(x.T, (y - sigma(x, w)))/y.shape[0] + lmbd*np.linalg.norm(w)*w #grad of loss of logistic function
             w += -gamma*grad    # take a step
@@ -239,16 +236,14 @@ def foo_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
 
             tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w) # outputs confusion matrix
 
-            sys.stdout.write('TN={0} TP={1} Accuracy={2}\r'.format("{:.2f}%".format(100*tn/N), '{: .2f}%'.format(100*tp/P), '{: .2f}%'.format(100*(tp+tn)/(N+P))))
-            sys.stdout.flush()
-            time.sleep(0.001)
+            
 
         else:
             if losses[n-1] <= 0.9*losses[n-k]:  # if loss improves keep looping with the same gamma
                 pass
             else:
                 gamma = 0.9*gamma # if not make the step smaller
-                print('\ngamma={0}'.format(gamma))
+              
                 i = 0
 
             grad = np.dot(x.T, (y - sigma(x, w)))/y.shape[0] + lmbd*np.linalg.norm(w)*w #grad of loss of logistic function
@@ -260,11 +255,8 @@ def foo_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
 
             tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w)
 
-            sys.stdout.write('TN={0} TP={1} Accuracy={2}\r'.format("{:.2f}%".format(100*tn/N), '{: .2f}%'.format(100*tp/P), '{: .2f}%'.format(100*(tp+tn)/(N+P))))
-            sys.stdout.flush()
-            time.sleep(0.001)
-
         i += 1
+    print(100*(tp+tn)/(N+P))
     return w, losses, tp, fp, tn, fn  # return the weight matrix and loss
 
 
