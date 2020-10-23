@@ -1,5 +1,6 @@
 import numpy as np
-
+import sys
+import time
 
 
 def standardize(trainF, testF):
@@ -193,7 +194,7 @@ def shuffle(x, y):
 def under_over(x, y, alpha=1, upsample=True, middle=True, gaussian=False, std=0.1, downsample=False):
     '''This function allows us to either undersample the labels -1 or upsample the labels1. There are 2 ways in which
     upsampling can happen. First it takes the middle values of the adjacent point or takes the existing standartized
-    data and add gaussian noice with a mean 0 and provided std. Argument alpha allows us to choose what proportion of
+    data and add gaussian noise with a mean 0 and provided std. Argument alpha allows us to choose what proportion of
     existing data point to add. Eg: if the labels are 10/5 of -1 and 1 respectively, setting alpha=1 will add 5 more
     1s, if alpha=0.2 it will add one etc.
     For the case of undesampling alpha determines the proportion of points that are left over. E.g if alpha=0.2 only
@@ -265,16 +266,16 @@ def replace_missing_values(x, x_test, val, cst = 0):
         mean = np.nanmean(x, axis=0)
         
         for i in np.arange(x.shape[1]):
-            x[np.isnan(x[:,i]),i] = mean[i]
-            x_test[np.isnan(x_test[:,i]),i] = mean[i]
+            x[np.isnan(x[:, i]), i] = mean[i]
+            x_test[np.isnan(x_test[:, i]), i] = mean[i]
         return x, x_test
     
     if val == 'median':
         median = np.nanmedian(x, axis =0)
         
         for i in np.arange(x.shape[1]):
-            x[np.isnan(x[:,i]),i] = median[i]
-            x_test[np.isnan(x_test[:,i]),i] = median[i]
+            x[np.isnan(x[:, i]), i] = median[i]
+            x_test[np.isnan(x_test[:, i]), i] = median[i]
         return x, x_test
     
     if val == 'mode':
@@ -331,8 +332,8 @@ def sigma(x, w):
 
 
 def predict_logistic_labels(xtest, w):
-    '''Changed version of predict labels function to account for the fact
-    that logistic regression outputs answers between 0 and 1 and not -1 and 1'''
+    """Changed version of predict labels function to account for the fact
+    that logistic regression outputs answers between 0 and 1 and not -1 and 1"""
     y_pred = 1 / (1 + np.exp(np.dot(xtest, w.T)))  # prediction of the logistic function
     y_pred[np.where(y_pred <= 1 / 2)] = -1
     y_pred[np.where(y_pred > 1 / 2)] = 1
@@ -375,11 +376,13 @@ def foo_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
             losses[n] = loss  # stores losses
 
             tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w) # outputs confusion matrix
+            sys.stdout.write('\rProgress={0}%, Accuracy={1}%'.format(100*n/max_iters, 100 * (tp + tn) / (N + P)))
+            sys.stdout.flush()
+            time.sleep(0.0001)
 
-            
-
+            #print(100 * (tp + tn) / (N + P))
         else:
-            if losses[n-1] <= 0.9*losses[n-k]:  # if loss improves keep looping with the same gamma
+            if losses[n-1] <= 1*losses[n-k]:  # if loss improves keep looping with the same gamma
                 pass
             else:
                 gamma = 0.9*gamma # if not make the step smaller
@@ -394,7 +397,20 @@ def foo_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
             losses[n] = loss
 
             tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w)
-
+            sys.stdout.write('\rProgress={0}%, Accuracy={1}%'.format(100*n/max_iters, 100 * (tp + tn) / (N + P)))
+            sys.stdout.flush()
+            time.sleep(0.0001)
         i += 1
-    print(100*(tp+tn)/(N+P))
+    #print(100*(tp+tn)/(N+P))
     return w, losses, tp, fp, tn, fn  # return the weight matrix and loss
+
+
+def jet_number(x, y):
+    ind = []
+    yy = []
+    xx = []
+    for n in range(4):
+        ind.append(np.where(x[:, 22] == n)[0])
+        yy.append(y[ind[n]])
+        xx.append(x[ind[n], :])
+    return yy, xx
