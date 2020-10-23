@@ -411,8 +411,8 @@ def jet_number(x, y, id):
     xx = []
     iid = []
     for n in range(4):
-        ind.append(np.where(tX[:, 22]==n)[0])
-        yy.append(Y[ind[n]])
-        xx.append(tX[ind[n], :])
-        iid.append(ids[ind[n]])
+        ind.append(np.where(x[:, 22] == n)[0])
+        yy.append(y[ind[n]])
+        xx.append(x[ind[n], :])
+        iid.append(id[ind[n]])
     return yy, xx, iid
