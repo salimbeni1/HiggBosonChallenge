@@ -405,12 +405,14 @@ def foo_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
     return w, losses, tp, fp, tn, fn  # return the weight matrix and loss
 
 
-def jet_number(x, y):
+def jet_number(x, y, id):
     ind = []
     yy = []
     xx = []
+    iid = []
     for n in range(4):
-        ind.append(np.where(x[:, 22] == n)[0])
-        yy.append(y[ind[n]])
-        xx.append(x[ind[n], :])
-    return yy, xx
+        ind.append(np.where(tX[:, 22]==n)[0])
+        yy.append(Y[ind[n]])
+        xx.append(tX[ind[n], :])
+        iid.append(ids[ind[n]])
+    return yy, xx, iid
