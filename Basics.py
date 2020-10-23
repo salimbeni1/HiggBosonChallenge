@@ -71,6 +71,7 @@ def sigmoid(x):
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
     '''Implement logistic regression with GD method'''
+    y = (y+1.)/2.
     w = initial_w
     
     for n_iter in range(max_iters):
@@ -88,7 +89,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     '''Implement regularized logistic regression with GD method'''
-
+    y = (y+1.)/2.
     w = initial_w   
     losses = np.zeros(max_iters) #initialize matrix to record losses
     for n in range(max_iters):
