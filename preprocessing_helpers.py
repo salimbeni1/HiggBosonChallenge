@@ -298,11 +298,12 @@ def logistic_accuracy(ytest, xtest, w):
 
 def f1(ytest, xtest, w):
     tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w)
+    acc = 100 * (tp + tn) / (tp + fp + tn + fn)
     tpr = 100 * (tp) / (tp + fn)
     tnr = 100 * (tn) / (tn + fp)
     ppv = 100 * (tp) / (tp + fp)
     F1 = 2 * (tpr * ppv) / (tpr + ppv)
-    return f1
+    return acc, f1
 
 def jet_number(x, y, id):
     ind = []
