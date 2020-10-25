@@ -103,7 +103,7 @@ def select_and_expand_f_logistic( arrF):
             new_arr : (N,19) array , combination of selected and new features
     """
     
-    new_arr = np.zeros(( arrF.shape[0], 496 ))
+    new_arr = np.zeros(( arrF.shape[0], 526 ))
     
     temp = 0
     
@@ -117,9 +117,9 @@ def select_and_expand_f_logistic( arrF):
     
     
     # logs
-    #for ind in np.arange(31)[1:]:
-    #        new_arr[:,temp + ind] = np.log(np.abs(arrF[:,selectInd[ind]]))       
-    #temp += len(selectInd)
+    for ind in np.arange(31)[1:]:
+            new_arr[:,temp + ind] = np.log(np.abs(arrF[:,ind]))       
+    temp += 30
     
     
     print("TEMP ->" , temp)
