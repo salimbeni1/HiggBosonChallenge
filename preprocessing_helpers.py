@@ -302,7 +302,7 @@ def f1(ytest, xtest, w):
     tpr = 100 * (tp) / (tp + fn)
     tnr = 100 * (tn) / (tn + fp)
     ppv = 100 * (tp) / (tp + fp)
-    F1 = 2 * (tpr * ppv) / (tpr + ppv)
+    f1 = 2 * (tpr * ppv) / (tpr + ppv)
     return acc, f1
 
 def jet_number(x, y, id):
