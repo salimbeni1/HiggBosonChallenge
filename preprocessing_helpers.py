@@ -386,9 +386,9 @@ def logistic_accuracy(ytest, xtest, w):
     ytest = (ytest + 1)/2
     y_sum = y_pred + ytest  # adds true and predicted values
     tp = list(y_sum).count(2)   # true positives
-    fp = list(y_sum).count(0)   # false positives
+    fp = list(y_sum).count(1)   # false positives
     tn = list(y_sum).count(-1)  # true negatives
-    fn = list(y_sum).count(1)   # false negatives
+    fn = list(y_sum).count(0)   # false negatives
 
     return tp, fp, tn, fn
 
