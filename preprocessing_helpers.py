@@ -130,102 +130,10 @@ def select_and_expand_f_logistic( arrF):
 
 
 
-def find_modes(x, y):
-
-    x_1 = []    # separate labels
-    x_2 = []
-
-    for y, x0 in zip(y, x):
-        if y == 1:
-            x_1.append(x0)
-        else:
-            x_2.append(x0)
-
-    x_1 = np.array(x_1)
-    x_2 = np.array(x_2)
-
-    cols = []
-    for col in range(x_2.shape[1]):
-        if np.any(x_2[:, col] == -999):
-            cols.append(col)
-
-    x_1 = x_1[:, cols]  # only columns with missing values
-    x_2 = x_2[:, cols]
-
-    modes1 = []
-    modes2 = []
-
-    for i in range(len(cols)):  # go through the columns of x_1 and x_2
-        # delete the missing values from the array
-        del_miss_1 = np.delete(x_1[:, i], np.where(x_1[:, i] == -999)[0])
-        del_miss_2 = np.delete(x_2[:, i], np.where(x_2[:, i] == -999)[0])
-
-        # mean1 = np.mean(del_miss_1)   #optionally you can find means
-        # mean2 = np.mean(del_miss_2)
-
-        # select bin index with maximum count
-        count1 = np.argmax(np.histogram(del_miss_1, bins=int(np.sqrt(del_miss_1.shape[0])))[0])
-        count2 = np.argmax(np.histogram(del_miss_2, bins=int(np.sqrt(del_miss_2.shape[0])))[0])
-
-        bins1 = np.histogram(del_miss_1, bins=int(np.sqrt(del_miss_1.shape[0])))[1]  # bin edges
-        bins2 = np.histogram(del_miss_2, bins=int(np.sqrt(del_miss_2.shape[0])))[1]
-
-        # mode of feature column without the missing values
-        mode1 = (bins1[count1] + bins1[count1 + 1]) / 2
-        mode2 = (bins2[count2] + bins2[count2 + 1]) / 2
-
-        modes1.append(mode1)  # append the mode of each column into the list
-        modes2.append(mode2)
-
-        modes = [modes1, modes2]
-    return modes, cols  # return modes list and list of indices of columns that are missing values
-
-
-def find_and_replace(x, y, cols, bool=True, value=False):
-    '''If bool is set to True in the argument valu, provide list (in the order: 1 and -1) of 2 lists (one for
-    each label) of values to be replaced. The sublists   must be of length 11 (number of columns that have
-    missing values, and must be in the same order as the columns given below). If set to False replace all the
-    missing values with the constant term.
-    Order in which the values should be provided [0, 4, 5, 6, 12, 23, 24, 25, 26, 27, 28] where numbers represent the
-    column indices.'''
-
-    miss_x = x[:, cols]    # select only columns that have missing values
-    red_x = np.delete(x, cols, axis=1)     # delete columns that have missing values from the original x
-
-    if bool:
-        modes1 = value[0]
-        modes2 = value[1]
-        for i in range(y.shape[0]):
-            if y[i] == 1:    # if label is 1
-                for j in range(miss_x.shape[1]):    # go through row of X
-                    if miss_x[i, j] == -999:     # if the data is missing
-                        miss_x[i, j] = modes1[j]    # replace it the desired value
-            else:
-                for j in range(miss_x.shape[1]):
-                    if miss_x[i, j] == -999:
-                        miss_x[i, j] = modes2[j]
-    else:
-        for i in range(y.shape[0]):
-            if y[i] == 1:    # if label is 1
-                for j in range(miss_x.shape[1]):    # go through row of X
-                    if miss_x[i, j] == -999:     # if the data is missing
-                        miss_x[i, j] = value    # replace be the desired value
-            else:
-                for j in range(miss_x.shape[1]):
-                    if miss_x[i, j] == -999:
-                        miss_x[i, j] = value
-
-    x = np.column_stack((red_x, miss_x))    # combine the 2 back together
-
-    return x
-
-
-
-
 def shuffle(x, y):
     shuffle_indices = np.random.permutation(np.arange(y.shape[0]))
-    y = y[shuffle_indices]  # rearranges the Y_train based on the shuffled indices
-    x = x[shuffle_indices]  # rearranges the X)train based on the shuffled indices
+    y = y[shuffle_indices]  # rearranges the y_train based on the shuffled indices
+    x = x[shuffle_indices]  # rearranges the x_train based on the shuffled indices
     return x, y
 
 
@@ -363,16 +271,12 @@ def outliers_removal(tx):
 #//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 # what r we gonna do with this ?
 
-def sigma(x, w):
-    '''Define logistic function'''
-    sigma = 1/(1+np.exp(np.dot(x, w)))
-    return sigma
 
 
 def predict_logistic_labels(xtest, w):
     """Changed version of predict labels function to account for the fact
     that logistic regression outputs answers between 0 and 1 and not -1 and 1"""
-    y_pred = 1 / (1 + np.exp(np.dot(xtest, w.T)))  # prediction of the logistic function
+    y_pred = 1 / (1 + np.exp(-np.dot(xtest, w.T)))  # prediction of the logistic function
     y_pred[np.where(y_pred <= 1 / 2)] = -1
     y_pred[np.where(y_pred > 1 / 2)] = 1
     return y_pred
@@ -392,55 +296,6 @@ def logistic_accuracy(ytest, xtest, w):
 
     return tp, fp, tn, fn
 
-
-def foo_logistic_regression(y, x, w, max_iters, gamma, ytest, xtest, lmbd):
-    '''Implement regularized logistic regression with GD method'''
-
-    P = list(ytest).count(1)   # number of 1s in test set
-    N = list(ytest).count(-1)  # number of -1s in test set
-
-    k = 200     # number of steps over which we observe loss to make sure it becomes smaller
-    losses = np.zeros(max_iters)    # initialize matrix to record losses
-    y = (y + 1)/2   # our labels are -1, 1 need to convert them to 0 and 1 for logistic regression
-
-    i = 0
-    for n in range(max_iters):
-        if i <= k:
-            grad = np.dot(x.T, (y - sigma(x, w)))/y.shape[0] + lmbd*np.linalg.norm(w)*w #grad of loss of logistic function
-            w += -gamma*grad    # take a step
-
-            loss = -(np.dot(y, np.log(sigma(x, w))) - np.dot((1 - y), np.log(1 - sigma(x, w)))) / y.shape[0] + \
-                   lmbd * np.sum(w ** 2) / 2
-            losses[n] = loss  # stores losses
-
-            tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w) # outputs confusion matrix
-            sys.stdout.write('\rProgress={0}%, Accuracy={1}%'.format(100*n/max_iters, 100 * (tp + tn) / (N + P)))
-            sys.stdout.flush()
-            time.sleep(0.0001)
-
-            #print(100 * (tp + tn) / (N + P))
-        else:
-            if losses[n-1] <= 1*losses[n-k]:  # if loss improves keep looping with the same gamma
-                pass
-            else:
-                gamma = 0.9*gamma # if not make the step smaller
-              
-                i = 0
-
-            grad = np.dot(x.T, (y - sigma(x, w)))/y.shape[0] + lmbd*np.linalg.norm(w)*w #grad of loss of logistic function
-            w += -gamma*grad    # take a step
-
-            loss = -(np.dot(y, np.log(sigma(x, w))) - np.dot((1 - y), np.log(1 - sigma(x, w))))/y.shape[0] + \
-                   lmbd*np.sum(w**2)/2
-            losses[n] = loss
-
-            tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w)
-            sys.stdout.write('\rProgress={0}%, Accuracy={1}%'.format(100*n/max_iters, 100 * (tp + tn) / (N + P)))
-            sys.stdout.flush()
-            time.sleep(0.0001)
-        i += 1
-    #print(100*(tp+tn)/(N+P))
-    return w, losses, tp, fp, tn, fn  # return the weight matrix and loss
 
 
 def jet_number(x, y, id):

@@ -93,9 +93,11 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     w = initial_w   
     losses = np.zeros(max_iters) #initialize matrix to record losses
     for n in range(max_iters):
-        grad = np.dot(tx.T, (y - sigma(tx, w))) + lambda_*np.linalg.norm(w)*w #grad of loss of logistic function
-        w += -gamma*grad/y_shape[0]    # take a step
-        loss = -(np.dot(y, np.log(sigma(tx, w))) - np.dot((1 - y), np.log(1 - sigma(tx, w)))) + lambda_*np.sum(w**2)/2  # computes loss
+        grad = np.dot(tx.T, (sigmoid(tx @ w) - y)) + lambda_*np.linalg.norm(w)*w #grad of loss of logistic function
+        w += -gamma*grad/y.shape[0]    # take a step
+        loss = -(np.dot(y, np.log(sigmoid(tx @ w))) - np.dot((1 - y), np.log(1 - sigmoid(tx @ w)))) + \
+               lambda_*np.sum(
+            w**2)/2  # computes loss
         losses[n] = loss  # stores losses
         
     return w, losses[-1]
