@@ -273,38 +273,7 @@ def outliers_removal(tx):
 
 
 
-def predict_logistic_labels(xtest, w):
-    """Changed version of predict labels function to account for the fact
-    that logistic regression outputs answers between 0 and 1 and not -1 and 1"""
-    y_pred = 1 / (1 + np.exp(-np.dot(xtest, w.T)))  # prediction of the logistic function
-    y_pred[np.where(y_pred <= 1 / 2)] = -1
-    y_pred[np.where(y_pred > 1 / 2)] = 1
-    return y_pred
-
-
-
-def logistic_accuracy(ytest, xtest, w):
-    y_pred = predict_logistic_labels(xtest, w)
-    #positive == 1
-    #negative == -1
-    ytest = (ytest + 1)/2
-    y_sum = y_pred + ytest  # adds true and predicted values
-    tp = list(y_sum).count(2)   # true positives
-    fp = list(y_sum).count(1)   # false positives
-    tn = list(y_sum).count(-1)  # true negatives
-    fn = list(y_sum).count(0)   # false negatives
-
-    return tp, fp, tn, fn
-
-def f1(ytest, xtest, w):
-    tp, fp, tn, fn = logistic_accuracy(ytest, xtest, w)
-    acc = 100 * (tp + tn) / (tp + fp + tn + fn)
-    tpr = 100 * (tp) / (tp + fn)
-    tnr = 100 * (tn) / (tn + fp)
-    ppv = 100 * (tp) / (tp + fp)
-    f1 = 2 * (tpr * ppv) / (tpr + ppv)
-    return acc, f1
-
+'''
 def jet_number(x, y, id):
     ind = []
     yy = []
@@ -316,3 +285,4 @@ def jet_number(x, y, id):
         xx.append(x[ind[n], :])
         iid.append(id[ind[n]])
     return yy, xx, iid
+'''

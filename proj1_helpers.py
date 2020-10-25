@@ -76,3 +76,19 @@ def get_accuracy( w , testY , testF ):
     res = dict(zip(unique, counts)) 
 
     return res[True]/(res[True]+res[False])
+
+
+def acc_f1(weights, data, ytest):
+    y_pred = predict_labels(weights, data)
+    ytest = (ytest + 1) / 2
+    y_sum = y_pred + ytest  # adds true and predicted values
+    tp = list(y_sum).count(2)  # true positives
+    fp = list(y_sum).count(1)  # false positives
+    tn = list(y_sum).count(-1)  # true negatives
+    fn = list(y_sum).count(0)  # false negatives
+    acc = 100 * (tp + tn) / (tp + fp + tn + fn)
+    tpr = 100 * (tp) / (tp + fn)
+    tnr = 100 * (tn) / (tn + fp)
+    ppv = 100 * (tp) / (tp + fp)
+    f1 = 2 * (tpr * ppv) / (tpr + ppv)
+    return acc, f1
