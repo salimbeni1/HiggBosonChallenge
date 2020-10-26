@@ -192,6 +192,30 @@ def standardize(trainF, testF):
     
     return standardized_train, standardized_test
 
+def normal_standardize(trainF, testF):
+    """
+        Standardize the original data.
+        
+        Args:
+            trainF : matrix with samples (dimensions: (N, M) where N is the number of samples and M the number 
+                of features)
+            testF : test dataset to standardize with the mean and std of the trianing dataset
+        
+        Returns: 
+            standardized_train : standardized train data
+            standardized_test : standardized test data
+    """
+    
+    mean = np.mean(trainF, axis=0)
+    centered_trainF = trainF - mean
+    std = np.std(centered_trainF, axis=0)
+    standardized_train = centered_trainF / (std + 1e-10)
+    
+    # standardize test_set with x mean and std
+    standardized_test = (testF-mean)/(std + 1e-10)
+    
+    return standardized_train, standardized_test
+
 ############################################################################################################
 
 
