@@ -245,6 +245,7 @@ def replace_missing_values(x, x_test, val, cst = 0):
     x_test[mask_test] = np.nan
     
     if val == 'constant':
+        
         x[mask] = cst
         x_test[mask_test] = cst
         return x, x_test

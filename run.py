@@ -54,9 +54,9 @@ w = np.array(w_after_20000_steps)
 print("done")
 
 
-acc , f1 = acc_f1(w , testF_sel , trainY )
+acc , f1 = acc_f1(w , trainF_sel , trainY )
 
-print("categorical accuracy : ",acc," f1 : ",f1)
+print("on Train set --> categorical accuracy : ",acc," f1 : ",f1)
 
 
 #### prediction ###################################################
@@ -66,7 +66,7 @@ y_pred = predict_labels(w  , testF_sel)
 
 
 # save prediction
-OUTPUT_PATH = 'output_sub1000.csv'
+OUTPUT_PATH = 'output_sub.csv'
 create_csv_submission(ids_test, y_pred, OUTPUT_PATH)
 
 print("done : saving prediction on ",OUTPUT_PATH)
