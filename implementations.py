@@ -245,12 +245,14 @@ def replace_missing_values(x, x_test, val, cst = 0):
     x_test[mask_test] = np.nan
     
     if val == 'constant':
-        
+        print('WARNING: it is highly not recommended to use this choice (with the option feature selection and expansion that we offer, you may experience overflow or related issues).')
+   
         x[mask] = cst
         x_test[mask_test] = cst
         return x, x_test
         
     if val == 'mean':
+        print('WARNING: it is highly not recommended to use this choice (with the option feature selection and expansion that we offer, you may experience overflow or related issues).')
         mean = np.nanmean(x, axis=0)
         
         for i in np.arange(x.shape[1]):
