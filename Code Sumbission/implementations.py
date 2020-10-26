@@ -395,7 +395,7 @@ def select_and_expand_f_logistic( arrF):
                     the order of the features must be the same of the csv file.
         
         Returns: 
-            new_arr : (N,19) array , combination of selected and new features
+            new_arr : (N,526) array , combination of selected and new features
     """
     
     new_arr = np.zeros(( arrF.shape[0], 526 ))
@@ -416,8 +416,6 @@ def select_and_expand_f_logistic( arrF):
             new_arr[:,temp + ind] = np.log(np.abs(arrF[:,ind]))       
     temp += 30
     
-    
-    print("TEMP ->" , temp)
     
         
     return new_arr
