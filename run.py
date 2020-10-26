@@ -7,9 +7,9 @@ print("Project 1")
 
 print("start : train and test csv parsing ...")
 
-DATA_TRAIN_PATH = '../data/train.csv' 
+DATA_TRAIN_PATH = 'data/train.csv' 
 y, tX, ids = load_csv_data(DATA_TRAIN_PATH)
-DATA_TEST_PATH = '../data/test.csv'
+DATA_TEST_PATH = 'data/test.csv'
 y_test, tX_test, ids_test = load_csv_data(DATA_TEST_PATH)
 
 print("done")
