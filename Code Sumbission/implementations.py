@@ -36,20 +36,15 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     
     return w, loss
 
-def least_squares_SGD(y, tx, initial_w,  max_iters, gamma, batch_size=1):
-    '''This function iterates through the enitre data set with given
-       minibatch size and repeats this max_iters number of times'''
-    w = initial_w
+def least_squares_SGD(y, x, w,  max_iters, gamma, batch_size=1):
+    losses = np.zeros(max_iters)
     num_batches = round(y.shape[0]/batch_size)
     for n in range(max_iters):
-        print(n)
-        for minibatch_y, minibatch_x in batch_iter(y, tx, batch_size, num_batches):
-            grad = compute_grad(minibatch_y, minibatch_x, w)  #computed grad on the given minibatch
-            w += - gamma*grad                                 #take a step 
-    
-    loss = compute_mse_loss(y, tx, w)
-        
-    return w, loss 
+        for minibatch_y, minibatch_x in batch_iter(y, x, batch_size, num_batches):
+            grad = compute_grad(minibatch_y, minibatch_x, w)
+            w += - gamma*grad
+    loss = compute_mse_loss(y, x, w)
+    return w, loss
 
 ######################################################################################
 
