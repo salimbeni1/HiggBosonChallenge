@@ -53,10 +53,17 @@ w = np.array(w_after_20000_steps)
 
 print("done")
 
+
+acc , f1 = acc_f1(w , testF_sel , trainY )
+
+print("categorical accuracy : ",acc," f1 : ",f1)
+
+
 #### prediction ###################################################
 
 print("start : computing predict lables ...")
 y_pred = predict_labels(w  , testF_sel)
+
 
 # save prediction
 OUTPUT_PATH = 'output_sub1000.csv'
