@@ -38,9 +38,8 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
 
 def least_squares_SGD(y, x, w,  max_iters, gamma, batch_size=1):
     losses = np.zeros(max_iters)
-    num_batches = round(y.shape[0]/batch_size)
     for n in range(max_iters):
-        for minibatch_y, minibatch_x in batch_iter(y, x, batch_size, num_batches):
+        for minibatch_y, minibatch_x in batch_iter(y, x, batch_size):
             grad = compute_grad(minibatch_y, minibatch_x, w)
             w += - gamma*grad
     loss = compute_mse_loss(y, x, w)
