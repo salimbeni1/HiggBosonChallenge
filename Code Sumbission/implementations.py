@@ -289,8 +289,8 @@ def outliers_removal(tx):
     
     """
         Remove outliers. Since the distribution is not normal, we remove outliers depending
-        on the interquartile range. If the values are above or belove the interquartile range x 1.5
-        they are replaced by the limit values (above and below)
+        on the interquartile range. If the values are above Q3 + interquartile range x 1.5 or below
+        Q1 - interquartile range x 1.5 they are replaced by the limit values (above and below)
         
         Args:
             tx : matrix with samples (dimensions: (N, M) where N is the number of samples and 
@@ -299,15 +299,15 @@ def outliers_removal(tx):
         Returns: 
             tx : matrix without outliers
     """
-    q25, q75 = np.percentile(tx, 25, axis=0), np.percentile(tx, 75, axis=0) #compute 25 and 75 quartile
-    iqr = q75 - q25 #interquartile range
+    q1, q3 = np.percentile(tx, 25, axis=0), np.percentile(tx, 75, axis=0) #compute 25 and 75 quartile
+    iqr = q3 - q1 #interquartile range
     thr = iqr * 1.5
   
     for i in np.arange(tx.shape[1]):
-        mask_low = (tx[:,i] < q25[i] - thr[i]) #true value are outliers
-        mask_high =  (tx[:,i] > q75[i] + thr[i])
-        tx[mask_low,i] = q25[i] - thr[i] #replace outliers with the limits of the range we accept
-        tx[mask_high,i] = q75[i] + thr[i]
+        mask_low = (tx[:,i] < q1[i] - thr[i]) #true value are outliers
+        mask_high =  (tx[:,i] > q3[i] + thr[i])
+        tx[mask_low,i] = q1[i] - thr[i] #replace outliers with the limits of the range we accept
+        tx[mask_high,i] = q3[i] + thr[i]
         
     return tx
 
