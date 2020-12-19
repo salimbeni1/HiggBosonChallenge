@@ -1,7 +1,9 @@
 # ML Project 1 -- Higgs boson challenge
 
 
-This is a project that aim to find a binary classification in order to separate the Higgs Boson detection from background events using CERN’s Higgs Boson dataset. 
+This is a project that aim to find a binary classification in order to separate the Higgs Boson detection from background events using CERN’s Higgs Boson dataset [kaggle](https://www.kaggle.com/c/higgs-boson). 
+
+Report : [report](https://github.com/salimbeni1/ml_project1/blob/main/ML_Project_1_report.pdf)
 
 ## dependencies
 
